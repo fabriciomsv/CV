@@ -12,7 +12,7 @@ datos_cluster <- vroom::vroom(
     "data",
     "datos_cluster.csv"
   )
-) %>% mutate.(
+) %>% mutate(
         cluster = factor(
             cluster,
             levels = c(
