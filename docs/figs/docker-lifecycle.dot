@@ -1,0 +1,29 @@
+digraph DockerLifecycle {
+  rankdir=LR;
+  node [shape=box, style=rounded, fontsize=10];
+
+  subgraph cluster_build {
+    label = "Build";
+    style = "rounded,dashed";
+    color = gray70;
+    Dockerfile [label="Dockerfile"];
+    Image [label="Imagen"];
+    Dockerfile -> Image [label="docker build"];
+  }
+
+  subgraph cluster_run {
+    label = "Run";
+    style = "rounded,dashed";
+    color = gray70;
+    Container [label="Contenedor"];
+    Volume [label="Volumen (host)\n-/work"];
+    Output [label="Outputs\n/work/output"];
+    Image -> Container [label="docker run"];
+    Container -> Output [label="escritura", style=dashed];
+    Volume -> Container [label="-v $PWD:/work", dir=both];
+  }
+
+  Registry [label="Registro\n(Docker Hub / GHCR)"];
+  Image -> Registry [label="push"];
+  Registry -> Image [label="pull"];
+}
