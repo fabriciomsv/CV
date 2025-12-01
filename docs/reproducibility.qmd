@@ -26,11 +26,9 @@ header-includes: |
   \usepackage{graphicx}
   \usepackage[left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm]{geometry}
   \usepackage{amsmath}
-  \usepackage[natbibapa]{apacite}
   \usepackage{graphicx}
   \usepackage{listings}
   \usepackage{float}
-  \usepackage{subfig}
   \usepackage[spanish]{babel}
   \addto\captionsspanish{\renewcommand{\figurename}{Figura}}
   \addto\captionsspanish{\renewcommand{\lstlistingname}{Bloque de código}}
@@ -40,11 +38,9 @@ header-includes: |
     \small
     	\textbf{\textit{Keywords---}} #1
   }
-  \renewcommand{\BBAB}{y}
 ---
 
 \begin{center}
-		\keywords{Reproducibilidad, Portabilidad, Análisis discriminante, Validación cruzada, MLOps}
 \end{center}
 
 \begin{abstract}
@@ -100,17 +96,15 @@ En esta sección presentamos el marco conceptual que organiza el resto del traba
 
 En conjunto, estos conceptos delinean el marco en el que se inscribe nuestro trabajo. La ciencia abierta aporta el horizonte normativo de transparencia y acceso; la reproducibilidad computacional fija el criterio mínimo para que los resultados puedan ser verificados; y la portabilidad asegura que ello pueda lograrse en distintos entornos físicos y organizacionales. Para alcanzar esos objetivos, resulta necesario explicitar el entorno de cómputo, transformarlo en un entorno reproducible y apoyarse en herramientas como los contenedores de software, que permiten encapsularlo y distribuirlo. Sobre esta base se construye el flujo de trabajo reproducible que proponemos, en el que tanto los pasos del análisis como el sistema en que se ejecutan se conciben como partes integrales del método de investigación.
 
-<!-- La reproducibilidad es clave para verificar y validar nuestros resultados una vez finalizada una investigación, ya que permite reconstruir los datos, los procesos y las decisiones de análisis que condujeron a las conclusiones. Pero también es una forma de trabajo que podemos adoptar desde el inicio: documentar los pasos, fijar versiones de software, automatizar scripts y organizar el código y los datos de manera sistemática. Optar por este camino tiene beneficios importantes: facilita la revisión interna, mejora la colaboración entre coautores, reduce errores difíciles de rastrear y aumenta la credibilidad del trabajo ante la comunidad académica, que puede evaluar, replicar o extender nuestros resultados con mayor confianza. -->
-
-# Modelo de aprendizaje estadístico
+# Modelo de aprendizaje estadístico {#sec-modelo}
 
 En esta sección resumimos el modelo de aprendizaje estadístico que utilizamos como caso de estudio para ilustrar el flujo de trabajo reproducible implementado con Docker. El objetivo no es ahondar en la discusión sustantiva sobre desigualdad económica (desarrollada en detalle en @Machado2023DIE), sino describir los componentes del modelo que son relevantes para su implementación, validación y posterior encapsulamiento en entornos reproducibles.
 
 Partimos de un análisis sobre la desigualdad económica cuyo objetivo es clasificar a los individuos en grupos sociales a partir de variables relevantes para estudiar su participación en el ingreso laboral (@Machado2023DIE). En una primera etapa se aplica un **análisis de clúster**, que permite detectar grupos relativamente homogéneos entre los perceptores de ingresos laborales en un año base, utilizando variables que resumen las características de los trabajadores y de sus puestos de trabajo. En una segunda etapa se emplea **análisis discriminante** para construir, a partir de esos clústeres, una regla de clasificación que pueda aplicarse a otros años y así seguir la evolución de los grupos y su participación en el ingreso laboral. Dado que esta regla se estima en un conjunto de datos y luego se aplica sobre información externa, se utilizan técnicas de **validación cruzada** para evaluar su desempeño y reducir el riesgo de sobreajuste.
 
-A continuación se detallan los datos utilizados y los métodos que forman parte del proceso de implementación en Docker, estos incluyen en particular los componentes de análisis discriminante y validación cruzada. El paso previo de análisis de clúster puede consultarse en el @sec-anexo-cluster.
+A continuación se detallan los datos utilizados y los métodos que forman parte del proceso de implementación en Docker, estos incluyen en particular los componentes de análisis discriminante y validación cruzada. El paso previo de análisis de clúster puede consultarse en el [Anexo @sec-anexo-cluster].
 
-## Datos
+## Datos {#sec-datos}
 
 La fuente de datos utilizada es la Encuesta Continua de Hogares (ECH) elaborada por el Instituto Nacional de Estadística (INE). Utilizamos información de personas y hogares para los años 2006, 2011, 2019 y 2021. En cada año se consideran las personas ocupadas de 20 años o más de todo el país con ingresos laborales, definiéndose ocupación como haber trabajado al menos una hora en la semana de referencia. Para el análisis se seleccionan variables que recogen información sobre las tareas realizadas en el trabajo, el sector de actividad, la categoría de ocupación, la informalidad, las horas trabajadas, el nivel educativo, la propiedad de la vivienda y el cobro de rentas. Estos datos constituyen la base sobre la que se estiman el modelo discriminante y los procedimientos de validación descritos a continuación.
 
@@ -118,7 +112,7 @@ El trabajo con datos se realiza íntegramente en R mediante un flujo de trabajo 
 
 ## Análisis discriminante
 
-El objetivo de esta aplicación es obtener una misma clasificación de grupos para todos los años seleccionados, manteniendo las características distintivas de cada uno. A partir de un conjunto de datos en el que la pertenencia a los grupos es conocida (el año base en el que se aplicó el análisis de clúster), se deriva una regla para asignar las observaciones a los grupos (@mclachlan2005, @hastie2009), minimizando la probabilidad de clasificación incorrecta. En la práctica, se clasifican los datos de 2006, 2019 y 2021 en la misma cantidad de grupos y con la misma caracterización resultante del análisis de clúster realizado en 2011, año elegido como base por presentar la clasificación más estable (véase @sec-anexo-cluster **ARREGLAR PARA QUE LO REFERENCIA COMO ANEXO Y NO COMO SECCIÓN**).
+El objetivo de esta aplicación es obtener una misma clasificación de grupos para todos los años seleccionados, manteniendo las características distintivas de cada uno. A partir de un conjunto de datos en el que la pertenencia a los grupos es conocida (el año base en el que se aplicó el análisis de clúster), se deriva una regla para asignar las observaciones a los grupos (@mclachlan2005, @hastie2009), minimizando la probabilidad de clasificación incorrecta. En la práctica, se clasifican los datos de 2006, 2019 y 2021 en la misma cantidad de grupos y con la misma caracterización resultante del análisis de clúster realizado en 2011, año elegido como base por presentar la clasificación más estable (véase el @sec-anexo-cluster).
 
 Entre las distintas funciones discriminantes posibles se eligió un modelo de regresión logística multinomial, dado que todas las variables explicativas son cualitativas (@mcfadden1972, @pohar2004, @hosmer2013). Dado que se espera encontrar más de dos grupos, se asume que la variable que indica la subpoblación de pertenencia proviene de una distribución multinomial. Las probabilidades logarítmicas relativas entre cada grupo $k$ y un grupo de referencia $K$ se modelan como (@ISLR):
 
@@ -132,7 +126,7 @@ Con la información obtenida del año base se pretende discriminar a los individ
 
 En términos computacionales, el análisis discriminante se implementa en R utilizando la función `multinom()` de la librería `nnet` (nnet v7.3-20; @MASS, @nnet), que permite estimar el modelo de regresión logística multinomial sobre el conjunto de datos del año base y aplicar posteriormente la regla de clasificación mediante el operador `predict()` de R (R v4.4.1; @R-base) a los demás años. Este modelo y su regla de clasificación constituyen el núcleo del flujo analítico que, en las secciones siguientes, será automatizado y encapsulado en el entorno reproducible definido con Docker.
 
-## Validación cruzada
+## Validación cruzada {#sec-validacion}
 
 Como es de interés clasificar datos externos, para evitar problemas de sobreajuste se utiliza el método de \textbf{validación cruzada $k-fold$} (@stone1974, @ISLR). Se dividen los datos aleatoriamente en $k$ pliegues de un tamaño similar, se estima la precisión tomando uno de los pliegues para el testeo y los restantes $k-1$ para el entrenamiento, el procedimiento se repite $k$ veces haciendo variar el pliegue de testeo de tal forma que todos los datos hayan sido utilizados como testeo y entrenamiento. Como resultado se obtienen $k$ estimaciones de la precisión y se toma su promedio como una medida global del ajuste sobre el total de los datos. 
 
@@ -140,31 +134,11 @@ La validación cruzada $k-fold$ se programó íntegramente en R a partir de func
 
 Como se verá en la sección 4, estas decisiones de implementación (paquetes utilizados, estructura de las funciones de validación y uso de computación en paralelo) son las que se fijan posteriormente en el entorno reproducible definido con Docker.
 
-<!-- Dado el volumen de datos y la intensidad computacional requerida, se optó por el uso de Docker para garantizar la reproducibilidad y portabilidad del entorno de desarrollo. Docker nos permitió encapsular todas las dependencias del proyecto dentro de un contenedor, asegurando que el proceso pueda ejecutarse de manera consistente en diferentes entornos, ya sea en servidores en la nube, en un servidor de cómputo local o en computadoras personales con diferentes sistemas operativos (@KaneMatthias2015).-->
-
-<!-- -->
-
-<!-- Para optimizar el rendimiento y facilitar la integración del modelo en entornos de producción, se aplicaron principios de Machine Learning Operations (MLOps). \textbf{MLOps} es un enfoque que combina prácticas de desarrollo de software (DevOps) con metodologías específicas de Machine Learning, con el objetivo de automatizar, escalar y gestionar los ciclos de vida de los modelos de aprendizaje automático de manera eficiente.-->
-
-<!-- Dentro de este marco, el procesamiento en paralelo jugó un papel crucial. Se utilizó el paquete \textbf{parallel} (@RCoreTeam) de R para distribuir el procesamiento de datos y la validación cruzada del modelo en múltiples núcleos de CPU, lo que permitió acelerar significativamente los tiempos de ejecución y manejar grandes volúmenes de datos de manera más efectiva. La integración de estas prácticas asegura que el modelo no solo sea reproducible, sino también escalable y adaptable a diferentes entornos.-->
-
-<!--   -->
-
-<!-- En un proyecto típico combinamos varios lenguajes y herramientas (R para procesar datos y gráficos, Stata para partes del análisis, Python para algún script auxiliar, LaTeX/Quarto para el documento, etc.). Además, solemos tener distintas máquinas involucradas: portátil personal, PC del trabajo, servidor de la facultad o la nube. Docker encaja bien con esa forma de trabajar porque permite definir un entorno único para el proyecto y ejecutarlo igual en todos esos lugares. En vez de escribir instrucciones largas del tipo “instalar tal versión de R, tal paquete, tal versión de Stata”, definimos el entorno una vez, lo empaquetamos y cualquiera puede levantarlo y correr el proyecto completo. -->
-
-<!--  -->
-
-<!-- Existen otros enfoques para gestionar la reproducibilidad en R y otros lenguajes (por ejemplo, sistemas de gestión de dependencias a nivel de paquetes), pero Docker ofrece la ventaja de encapsular el sistema operativo y el conjunto completo de herramientas utilizadas en el proyecto. -->
-
-<!-- Desde el punto de vista operativo, Docker utiliza un servicio del sistema que crea y administra contenedores, apoyándose en el kernel para aislar procesos y recursos, y en un sistema de archivos por capas (copy‑on‑write) que ahorra espacio y acelera las compilaciones. El ciclo de trabajo es simple y repetible: se construye la imagen, se ejecuta montando datos y carpeta de resultados, se observan los registros o se ingresa al contenedor cuando es necesario, se persisten los artefactos en el volumen del equipo anfitrión y, finalmente, se limpian recursos no utilizados. La idea central es que cualquier cambio que ocurra dentro del contenedor es efímero; por ello, los resultados deben escribirse siempre en una ruta montada desde el host (por ejemplo, `/output`).-->
-
-<!-- La diferencia respecto a otros sistemas de virtualización como máquinas virtuales es que Docker comparte el kernel del sistema anfitrión, lo que reduce el uso de recursos y acelera el arranque. Esta característica lo vuelve especialmente adecuado para desarrollar, desplegar y escalar análisis reproducibles en investigación. Las máquinas virtuales, en cambio, cargan un sistema operativo completo, consumen más CPU, memoria y almacenamiento, y requieren herramientas de administración específicas. Para la mayoría de los flujos de investigación orientados a reproducibilidad y portabilidad, los contenedores ofrecen una solución más ágil y suficiente.-->
-
 # Implementación
 
-En esta sección describimos, primero, los componentes principales de Docker que utilizamos, y luego el ejemplo concreto de Dockerfile y comandos para replicar el análisis.
+Las secciones previas fijaron los conceptos y el modelo que motivan este estudio de caso; ahora trasladamos esas ideas al plano operativo. Empezamos repasando los componentes que intervienen en el ciclo de vida de una imagen Docker y cómo se articulan con un proyecto que combina scripts, datos y documentación. Luego mostramos un ejemplo completo de Dockerfile, junto con los comandos `docker` necesarios para construir, ejecutar y compartir el flujo analítico.
 
-**LA IDEA ES HACER UN PREAMBULO, QUEDÓ MEDIO CORTO**
+El énfasis está puesto en describir qué problema resuelve cada pieza y por qué, frente a alternativas como gestores de dependencias específicos por lenguaje o máquinas virtuales completas, un contenedor resulta más liviano y repetible para la colaboración cotidiana (@potdar2020). La intención es que quienes sigan esta guía puedan reconstruir el entorno sin ambigüedades, independientemente del sistema operativo o el equipo desde el que trabajen.
 
 ## Componentes de Docker
 
@@ -179,7 +153,7 @@ Los principales componentes de Docker son:
 - Contenedor: instancia en ejecución de la imagen.
 - Registro: repositorio para almacenar y compartir imágenes (Docker Hub, GHCR).
 
-El flujo presentado en la Figura \ref{fig:dockerlifecycle} permite integrar los componentes y ver como se interrelacionan en el ciclo de vida de Docker. Una imagen es la plantilla inmutable del entorno (sistema, librerías y, cuando corresponde, parte del código) identificada por `repo:tag` y por un `digest` (`sha256:`) que garantiza identidad exacta entre máquinas. Un contenedor es el proceso que ejecuta esa imagen de forma aislada; toda escritura dentro del contenedor es temporal, salvo que se utilice un volumen montado desde el equipo anfitrión, que es donde deben guardarse datos y resultados. El Dockerfile es la "receta" para construir la imagen con instrucciones como `FROM`, `RUN` o `COPY`, y el registro es el repositorio donde se versionan y comparten imágenes con coautores y replicadores. 
+
 
 \begin{figure}[H]
   \centering
@@ -188,7 +162,11 @@ El flujo presentado en la Figura \ref{fig:dockerlifecycle} permite integrar los 
   \label{fig:dockerlifecycle}
 \end{figure}
 
-**CAPAZ AGREGAR ACÁ UNA DESCRIPCIÓN MUY PARA TONTOS DE TODO EL FLUJO QUE SE PRESENTA EN LA IMAGEN, SOBRE TODO PORQUE HAY COSAS QUE SE NOMBRAN EN LA IMAGEN Y NO EN EL TEXTO, LA EXPLICACIÓN DEBERÍA ABARCAR TODOS LOS CONCETOS QUE ESTÁN EN EL DIAGRAMA**
+El flujo presentado en la Figura \ref{fig:dockerlifecycle} permite integrar los componentes y ver como se interrelacionan en el ciclo de vida de Docker. Todo comienza escribiendo un `Dockerfile`, que resume el sistema operativo base, los paquetes y los archivos del proyecto. Con `docker build` se genera la imagen resultante, un artefacto inmutable que encapsula ese entorno y puede versionarse mediante etiquetas.
+
+Una vez creada, la imagen puede publicarse en un registro como Docker Hub o GitHub Container Registry usando `docker push`, y descargarse en cualquier otra máquina con `docker pull`. Al ejecutar `docker run`, la imagen se convierte en un contenedor activo. En esa ejecución se monta el directorio del proyecto del equipo anfitrión (`-v $PWD:/work`), lo que permite que el contenedor lea datos existentes y escriba resultados persistentes en rutas como `/work/output`. La flecha punteada hacia “Outputs” recuerda que los artefactos relevantes deben guardarse en ese volumen compartido, porque todo lo que quede dentro del contenedor se descarta al finalizar la sesión.
+
+Este flujo contrasta con las máquinas virtuales tradicionales, que copian un sistema operativo completo y requieren más recursos para inicializarse, y con gestores de dependencias específicos por lenguaje (por ejemplo, `renv` o `virtualenv`), que no encapsulan herramientas externas como compiladores o LaTeX. Docker reutiliza el kernel del anfitrión y empaqueta el resto de los componentes, por lo que resulta más ágil para alternar entre entornos y compartir una configuración única con colaboradores.
 
 Para sostener la reproducibilidad a lo largo del tiempo, se recomienda etiquetar imágenes con fecha o versión (y, cuando sea crítico, referenciarlas por `digest`), congelar paquetes (R: `renv`; Python: `requirements.txt`) y guardar `sessionInfo()` o `pip freeze` junto a los resultados. También es recomendable limitar recursos (CPU y memoria) para obtener ejecuciones controladas y comparables. Los datos y las credenciales no deben incorporarse en la imagen: se montan a través de un volumen con `-v` y se suministran por variables de entorno o archivos `.env`. También es conveniente fijar semillas aleatorias, normalizar configuraciones regionales y zonas horarias y ejecutar como usuario no privilegiado (o con `--user $(id -u):$(id -g)`). Documentar los comandos exactos de `docker build` y `docker run` (y los límites de recursos) en un README o Makefile mejora la trazabilidad.
 
@@ -204,7 +182,7 @@ docker ps -a # Lista todos los contenedores (también los detenidos)
 
 # Ejecutar con límites y variables
 docker run --rm -it -v "$PWD":/work -w /work --cpus=4 -m 8g \
-  --env-file .env ghcr.io/fabriciomch/cv:latest /bin/bash
+  --env-file .env ghcr.io/fabriciomsv/cv:latest /bin/bash
 
 # Logs y acceso
 docker logs -f <nombre_o_id> # Seguir logs en tiempo real
@@ -222,13 +200,9 @@ docker image prune -f # Limpia imágenes no usadas
 
 A modo de cierre, es útil recordar algunas pautas para evitar errores frecuentes: utilizar siempre una imagen etiquetada y el Dockerfile versionado; fijar dependencias y semillas; montar datos y escribir resultados en `/work/output`; documentar el comando de ejecución y los recursos asignados; y conservar registros y metadatos de sesión junto a los outputs. Si los resultados no aparecen, suele deberse a que no se montó `-v "$PWD":/work` o no se escribió en la ruta montada; si faltan paquetes, deben instalarse en la imagen base o en un paso de inicialización; si surgen problemas de permisos, ejecutar con `--user $(id -u):$(id -g)`; y si hay limitaciones de memoria, aumentar `-m` o reducir el tamaño de los lotes.
 
-**FIJATE SI ALGUNO DE LOS BLOQUES DE TEXTO QUE ESTÁN COMENTADOS ANTES DE QUE ARRANQUE LA SECCIÓN DEBERÍA IR, SI SON IMPORTANTES HABRÍA QUE INTEGRARLOS PERO CUIDANDO EL LARGO DE LAS SUBSECCIONES Y EL HILO**
+## Ejemplo
 
-## Ejemplo 
-
-El ambiente de trabajo se configuró mediante un `Dockerfile` que define todas las herramientas y bibliotecas necesarias para la ejecución del modelo. Este archivo incluye desde la instalación de R y sus paquetes relevantes, hasta la configuración de las dependencias del sistema operativo. De esta forma, cualquier usuario puede reproducir el ambiente exacto simplemente construyendo y ejecutando el contenedor.
-
-Como ejemplo concreto, a continuación se muestra un Dockerfile (ver [bloque de código @lst-dockerfile-example]) para obtener el resultado del análisis detallado en la sección **PONER REF**. Usa como base `eddelbuettel/r2u:22.04` (Ubuntu + R con binarios precompilados), instala los paquetes mencionados en **poner ref** (`nnet`, `vroom`, `here`, `tidytable`, `magrittr`), crea una estructura de carpetas para el proyecto e incluye los datos (`/home/ubuntu/model/{data,R,output}`) a utilizar, instala paquetes de R, copia archivos y define un comando por defecto que ejecuta el script principal.
+Para reproducir el flujo de trabajo descrito en la @sec-modelo, se preparó un Dockerfile que encapsula las dependencias de R, los scripts y la estructura de carpetas del proyecto. El Dockerfile utiliza como base la imagen `eddelbuettel/r2u:22.04`, instala los paquetes citados en la @sec-datos (`nnet`, `vroom`, `here`, `tidytable`, `magrittr`), crea los directorios `/home/ubuntu/model/{data,R,output}`, copia los archivos necesarios y define como comando por defecto la ejecución de `main.R`. Con este archivo se puede construir la imagen, ejecutarla en cualquier máquina con Docker instalado y obtener los resultados de forma reproducible (véase el [bloque de código @lst-dockerfile-example]).
 
 
 ::: {#lst-dockerfile-example}
@@ -285,34 +259,34 @@ docker run --rm \
 ```
 :::
 
-Este Dockerfile tiene un ejemplo básico para que devuelva el accuracy del modelo, definido en la sección **poner ref** como la forma correcta de validar los resultados. En otros casos puede ser util guardar otras métricas, modelos intermedios o datos procesados en la carpeta `output/`, que está montada desde el equipo anfitrión.
+Esta imagen tiene un ejemplo básico para que devuelva la métrica de precisión del modelo, definida en la @sec-validacion como la forma correcta de validar los resultados. En otros casos puede ser útil guardar otras métricas, modelos intermedios o datos procesados en la carpeta `output/`, que está montada desde el equipo anfitrión.
 
-La imagen ya se encuentra construida y publicada en base a la ultima versión del código en el repositorio de [GitHub](https://github.com/FabricioMch/CV) y mediante GitHub Actions se actualiza automáticamente al crear nuevas etiquetas.
+La imagen ya se encuentra construida y publicada en base a la ultima versión del código en el repositorio de [GitHub](https://github.com/fabriciomsv/CV) y mediante GitHub Actions se actualiza automáticamente al crear nuevas etiquetas.
 
 
 # Ejecución
 
-Para trabajar con la imagen pública de este proyecto alojada en GitHub Container Registry (GHCR: `ghcr.io/fabriciomch/cv`) no es necesario modificar nada: basta con descargarla, ejecutarla montando la carpeta del proyecto y, si se desea mantener una variante local, construir una imagen propia a partir de un Dockerfile. De manera esquemática, un flujo típico de trabajo puede resumirse del siguiente modo. 
+Para trabajar con la imagen pública de este proyecto alojada en GitHub Container Registry (GHCR: `ghcr.io/fabriciomsv/cv`) no es necesario modificar nada: basta con descargarla, ejecutarla montando la carpeta del proyecto y, si se desea mantener una variante local, construir una imagen propia a partir del Dockerfile. De manera esquemática, un flujo típico de trabajo puede resumirse del siguiente modo. 
 
 Pasos de uso (imagen GHCR):
 
 1. Obtener la imagen
    - Para imágenes públicas (como en este caso), ejecutar:
      ```bash
-     docker pull ghcr.io/fabriciomch/cv:latest
+     docker pull ghcr.io/fabriciomsv/cv:latest
      ```
    - Si fuera privada, autenticarse previamente en GitHub Container Registry (GHCR) con un personal access token (PAT) asociado a la cuenta de GitHub.
 
 2. Vincular el proyecto local
    - Desde la carpeta del proyecto (donde residen código y datos), ejecutar:
      ```bash
-     docker run --rm -it -v "$PWD":/work -w /work ghcr.io/fabriciomch/cv:latest /bin/bash
+     docker run --rm -it -v "$PWD":/work -w /work ghcr.io/fabriciomsv/cv:latest /bin/bash
      ```
 
 3. Ejecutar el script de análisis
    - Por ejemplo:
      ```bash
-     docker run --rm -v "$PWD":/work -w /work ghcr.io/fabriciomch/cv:latest Rscript main.R
+     docker run --rm -v "$PWD":/work -w /work ghcr.io/fabriciomsv/cv:latest Rscript main.R
      ```
 
 4. (Opcional) Congelar una variante propia
@@ -335,8 +309,8 @@ Para ilustrar la simplicidad de uso, el [bloque de código @lst-dockerfile-minim
 
 ::: {#lst-dockerfile-minimal}
 ```bash
-docker pull ghcr.io/fabriciomch/cv:main
-docker run -v ${PWD}/output/:/home/ubuntu/model/output ghcr.io/fabriciomch/cv:main
+docker pull ghcr.io/fabriciomsv/cv:main
+docker run -v ${PWD}/output/:/home/ubuntu/model/output ghcr.io/fabriciomsv/cv:main
 ```
 :::
 
@@ -366,12 +340,8 @@ A continuación se describen los pasos básicos para utilizar la imagen Docker d
 
 GitHub Codespaces puede entenderse, en este contexto, como un complemento a los flujos basados en contenedores: permite abrir un entorno de desarrollo efímero en la nube, definido a partir del propio repositorio (por ejemplo mediante un archivo de configuración `.devcontainer.json`), en el que se puede inspeccionar el código, ajustar scripts y lanzar contenedores Docker con el mismo entorno que se utiliza localmente.
 
-Esto resulta especialmente útil para trabajo colaborativo, docencia o talleres, ya que cualquier integrante del equipo puede acceder a un entorno listo para usar sin instalar herramientas en su equipo personal. No obstante, es importante tener en cuenta que GitHub Codespaces presenta ciertas limitaciones en cuanto a recursos (CPU, memoria y almacenamiento) y tiempo de ejecución, por lo que puede no resultar adecuado para análisis muy intensivos o de larga duración. Servicios de cómputo en la nube como Amazon EC2 u otras plataformas de infraestructura como servicio suelen ser más apropiados cuando se necesita alquilar capacidad de procesamiento para ejecutar cargas pesadas en segundo plano (por ejemplo, corridas extensivas de validación cruzada, simulaciones o entrenamientos de modelos de mayor porte). En estos casos, la práctica recomendable es mantener la lógica del análisis y la definición del entorno en una imagen Docker versionada, y desplegar esa misma imagen tanto en el entorno local como en instancias de cómputo en la nube, de modo que la decisión sobre el ‘dónde’ ejecutar (equipo propio o nube) no afecte al ‘cómo’ se ejecuta el análisis.
 
-
-
-
-
+Es importante tener en cuenta que GitHub Codespaces presenta ciertas limitaciones en cuanto a recursos (CPU, memoria y almacenamiento) y tiempo de ejecución, por lo que puede no resultar adecuado para análisis muy intensivos o de larga duración. Servicios de cómputo en la nube como Amazon EC2 u otras plataformas de infraestructura como servicio suelen ser más apropiados cuando se necesita alquilar capacidad de procesamiento para ejecutar cargas pesadas en segundo plano (por ejemplo, corridas extensivas de validación cruzada, simulaciones o entrenamientos de modelos de mayor porte). En estos casos, la práctica recomendable es mantener la lógica del análisis y la definición del entorno en una imagen Docker versionada, y desplegar esa misma imagen tanto en el entorno local como en instancias de cómputo en la nube, de modo que la decisión sobre el ‘dónde’ ejecutar (equipo propio o nube) no afecte al ‘cómo’ se ejecuta el análisis.
 
 
 # Comentarios finales
@@ -386,13 +356,17 @@ Hemos comprobado que Docker puede ser una herramienta valiosa en la investigaci�
 
 Al mismo tiempo, el enfoque presentado no pretende cubrir todas las situaciones posibles. El caso de estudio se centra en un modelo relativamente acotado, implementado en un único lenguaje (R) y sobre un conjunto de datos específico, por lo que ciertos desafíos que enfrentan proyectos más grandes, multicéntricos o multilanguage quedan fuera del alcance de este ejercicio. La adopción de Docker y herramientas afines también supone familiarizarse con algunos conceptos básicos de contenedores y con la línea de comandos, lo que puede requerir un período de adaptación. A ello se suman consideraciones habituales en proyectos con datos reales, como las restricciones de confidencialidad o licencias, y condicionantes de infraestructura en ciertos entornos de cómputo, en particular cuando se trabaja con recursos gratuitos o limitados en la nube. Más que obstáculos insalvables, estos elementos señalan ámbitos en los que es necesario acompañar la adopción de contenedores con materiales de apoyo, capacitación y buenas prácticas de gestión de datos.
 
-Estas consideraciones abren, a su vez, líneas posibles de extensión. Una primera dirección consiste en generalizar el enfoque a otros tipos de modelos y lenguajes (por ejemplo, combinar R, Python y Stata en un mismo contenedor, o integrar etapas adicionales de preprocesamiento, modelado y visualización). Una segunda línea apunta a profundizar la automatización mediante herramientas de gestión de dependencias (como renv en R), pruebas automatizadas y pipelines de integración continua que construyan y verifiquen imágenes con cada cambio relevante en el código. Finalmente, a nivel de comunidad, el uso de plantillas de proyectos, repositorios de ejemplo y actividades de formación podría facilitar una adopción progresiva de estos entornos reproducibles en grupos de investigación, cursos de grado y posgrado o instancias de docencia aplicada.
+Como línea posible de extensión se podría profundizar la automatización mediante herramientas de gestión de dependencias (como renv en R), pruebas automatizadas y pipelines de integración continua que construyan y verifiquen imágenes con cada cambio relevante en el código. Finalmente, a nivel de comunidad, el uso de plantillas de proyectos, repositorios de ejemplo y actividades de formación podría facilitar una adopción progresiva de estos entornos reproducibles en grupos de investigación, cursos de grado y posgrado o instancias de docencia aplicada.
 
 En conjunto, el caso presentado sugiere que los contenedores de software pueden desempeñar un papel central en la traducción de los principios de ciencia abierta y reproducibilidad computacional a prácticas concretas de trabajo con datos. Al fijar el entorno, automatizar los pasos clave del análisis y documentar de forma clara cómo ejecutar el flujo completo, se refuerza la posibilidad de verificar, compartir y extender los resultados de la investigación empírica. En síntesis, el uso de ambientes reproducibles con Docker constituye una práctica recomendable para fortalecer la solidez empírica, la transparencia y la portabilidad de los análisis en contextos académicos, a la vez que habilita escalabilidad y mantenimiento a lo largo del ciclo de vida de los proyectos.
 
 \newpage
 
-## Anexo A. Análisis de cluster {#sec-anexo-cluster}
+```{=latex}
+\appendix
+```
+
+# Análisis de clúster {#sec-anexo-cluster}
 
 Mediante esta técnica se pretende clasificar individuos en grupos (@blanco2006, @kaufman2009). Para esto es necesario definir una métrica que cuantifique la similitud entre los individuos de la población. La variedad de métricas tienen distinta sensibilidad a los datos atípicos, así como difieren en el tipo de variables que pueden analizar entre cuantitativas y categóricas, nominales u ordinales.
 

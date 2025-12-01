@@ -1,6 +1,6 @@
 # Cross-Validation Pipeline with Docker
 
-[![Docker Pulls](https://img.shields.io/badge/Docker%20Pull-ghcr.io%2Ffabriciomch%2Fcv-blue)](https://ghcr.io/fabriciomch/cv)
+[![Docker Pulls](https://img.shields.io/badge/Docker%20Pull-ghcr.io%2Ffabriciomsv%2Fcv-blue)](https://ghcr.io/fabriciomsv/cv)
 [![GitHub Codespaces](https://img.shields.io/badge/Codespaces-Ready-brightgreen)](https://github.com/codespaces)
 [![R Version](https://img.shields.io/badge/R-4.3.x-blue)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
@@ -15,7 +15,7 @@ It provides a fully portable workflow suitable for research, teaching, and acade
 The prebuilt container image is available on GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/fabriciomch/cv:sha256-88c99867d3ffb839eb8e5ca9159cbee789e8da5f23ab67fb076960483a5da42b.sig
+docker pull ghcr.io/fabriciomsv/cv:sha256-88c99867d3ffb839eb8e5ca9159cbee789e8da5f23ab67fb076960483a5da42b.sig
 ```
 
 ---
@@ -85,7 +85,7 @@ To enable one-click reproducibility in the cloud, include the following file in 
 ```json
 {
   "name": "CV Multinom",
-  "image": "ghcr.io/fabriciomch/cv:latest",
+  "image": "ghcr.io/fabriciomsv/cv:latest",
   "customizations": {
     "vscode": {
       "extensions": ["ms-vscode.remote-containers"]
